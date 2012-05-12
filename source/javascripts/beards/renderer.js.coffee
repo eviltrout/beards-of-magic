@@ -12,6 +12,7 @@ class window.Beards.Renderer
     @mapCanvas.height = @canvas.height
     @mapCtx = @mapCanvas.getContext('2d')
 
+    @fonts = Array()
     @characters = Array()
     for c in [0..255]
       cy = Math.floor(c / 16)
@@ -20,18 +21,24 @@ class window.Beards.Renderer
 
     @ctx = @canvas.getContext('2d')
 
+  loadFont: (num, finished) ->
+    return finished() if num < 0
+    @fonts[num] = new Image()
+    @fonts[num].src = "/images/color#{num}.gif"
+    @fonts[num].onload = => @loadFont(num-1, finished)
+
   load: (finished) ->
-    @fontImage = new Image()
-    @fontImage.src = "/images/font.png"
-    @fontImage.onload = => finished()
+    @loadFont(15, finished)
 
   drawMap: (c, x, y) ->
+    font = @fonts[10]
     pos = @characters[c]  
-    @mapCtx.drawImage(@fontImage, pos[0], pos[1], @CHAR_WIDTH, @CHAR_HEIGHT, x*@CHAR_WIDTH, y*@CHAR_HEIGHT, @CHAR_WIDTH, @CHAR_HEIGHT)
+    @mapCtx.drawImage(font, pos[0], pos[1], @CHAR_WIDTH, @CHAR_HEIGHT, x*@CHAR_WIDTH, y*@CHAR_HEIGHT, @CHAR_WIDTH, @CHAR_HEIGHT)
 
   drawChar: (c, x, y) ->
+    font = @fonts[15]
     pos = @characters[c]
-    @ctx.drawImage(@fontImage, pos[0], pos[1], @CHAR_WIDTH, @CHAR_HEIGHT, x*@CHAR_WIDTH, y*@CHAR_HEIGHT, @CHAR_WIDTH, @CHAR_HEIGHT)
+    @ctx.drawImage(font, pos[0], pos[1], @CHAR_WIDTH, @CHAR_HEIGHT, x*@CHAR_WIDTH, y*@CHAR_HEIGHT, @CHAR_WIDTH, @CHAR_HEIGHT)
 
   refresh: ->
     @ctx.drawImage(@mapCanvas, 0, 0)

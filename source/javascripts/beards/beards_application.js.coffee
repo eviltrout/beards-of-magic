@@ -30,7 +30,7 @@ window.Beards =
     @nextMove = @nextTick
     @renderer = new Beards.Renderer($('#terminal').get(0))
     @renderer.load =>
-      level = @loadRoom("http://beard2/levels/start.js")
+      level = @loadRoom("http://beard1/javascripts/levels/start.js")
 
     # Render loop
     setInterval @tick.bind(this), 1000/60
