@@ -1,4 +1,4 @@
-API
+## API
 
 Returns true if an inventory item was used
 
@@ -27,6 +27,10 @@ Display a modal message, but only once even if the method is called again
 Teleport the player to a certain place in the same room
 
 `Beards.teleport(x, y)`
+
+Load a new level, optionally start the player at position 
+
+`Beards.loadRoom(url, x, y)`
 
 The call that tells the Beard engine to load and start the level
 

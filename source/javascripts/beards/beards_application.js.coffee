@@ -14,11 +14,6 @@ window.Beards = Ember.Application.create
   PLAYER_CODE: '0'
   EMPTY_CELL: ' '
 
-  deltaX: 0
-  deltaY: 0
-
-  loaded: false
-  dirty: true
   flags: Array()
   paused: false
 
@@ -47,8 +42,18 @@ window.Beards = Ember.Application.create
   ).observes('ego.x', 'ego.y')
 
   # Loads a room via URL
-  loadRoom: (url) ->
+  loadRoom: (url, x=null, y=null) ->
+    @loaded = false
+    @dirty = true
+    @deltaX = 0
+    @deltaY = 0
+
     @roomUrl = url
+
+    # Where to start the player after we load
+    @postLoadX = x
+    @postLoadY = y
+
     script = document.createElement("script")
     script.type = "text/javascript"
     script.src = url
@@ -57,8 +62,6 @@ window.Beards = Ember.Application.create
   start: ->
     @set 'ego', Beards.Actor.create
       code: @PLAYER_CODE
-      x: 3
-      y: 3
 
     @nextTick = (new Date).getTime()
     @nextMove = @nextTick
@@ -100,6 +103,10 @@ window.Beards = Ember.Application.create
     false
 
   solid: (x, y) ->
+
+    return true if x < 0 or x >= @COLS
+    return true if y < 0 or y >= @ROWS
+
     destCell = @map[y][x]
     if cell = @legend[destCell]
       return true if cell.solid
@@ -115,10 +122,6 @@ window.Beards = Ember.Application.create
 
       destX = @ego.get('x') + @deltaX
       destY = @ego.get('y') + @deltaY
-      destX = 0 if destX < 0
-      destY = 0 if destY < 0
-      destX = @COLS - 1 if destX >= @COLS
-      destY = @ROWS - 1 if destY >= @ROWS      
 
       if @solid(destX, destY)
         unless @solid(destX, @ego.get('y'))
@@ -202,8 +205,15 @@ window.Beards = Ember.Application.create
     @renderer.setTile(@PLAYER_CODE, 0x02, "bright_white", "black")
     @triggers = level.triggers
 
-    @triggers["55,18"] = => @teleport(76, 18)
-    @triggers["77,18"] = => @teleport(55, 18)
+    @triggers["55,18"] = => @loadRoom("http://beard2/levels/minefield.js")
+
+    if @postLoadX isnt null
+      level.start[0] = @postLoadX
+      @postLoadX = null
+
+    if @postLoadY isnt null
+      level.start[1] = @postLoadY
+      @postLoadY = null
 
     @ego.set('x', level.start[0])
     @ego.set('y', level.start[1])
