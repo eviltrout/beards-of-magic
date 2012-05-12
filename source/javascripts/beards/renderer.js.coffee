@@ -7,23 +7,37 @@ class window.Beards.Renderer
   CHAR_HEIGHT: 15
 
   constructor: (@canvas) ->
+    @mapCanvas = document.createElement('canvas')
+    @mapCanvas.width = @canvas.width
+    @mapCanvas.height = @canvas.height
+    @mapCtx = @mapCanvas.getContext('2d')
+
+    @characters = Array()
+    for c in [0..255]
+      cy = Math.floor(c / 16)
+      cx = (c - (cy * 16))
+      @characters[c] = [cx * @CHAR_WIDTH, cy * @CHAR_HEIGHT]
+
     @ctx = @canvas.getContext('2d')
-    @ctx.globalCompositeOperation = 'destination-over'
 
   load: (finished) ->
     @fontImage = new Image()
     @fontImage.src = "/images/font.png"
-    @fontImage.onload = finished
+    @fontImage.onload = => finished()
+
+  drawMap: (c, x, y) ->
+    pos = @characters[c]  
+    @mapCtx.drawImage(@fontImage, pos[0], pos[1], @CHAR_WIDTH, @CHAR_HEIGHT, x*@CHAR_WIDTH, y*@CHAR_HEIGHT, @CHAR_WIDTH, @CHAR_HEIGHT)
 
   drawChar: (c, x, y) ->
-    cy = Math.floor(c / 16)
-    cx = (c - (cy * 16))
+    pos = @characters[c]
+    @ctx.drawImage(@fontImage, pos[0], pos[1], @CHAR_WIDTH, @CHAR_HEIGHT, x*@CHAR_WIDTH, y*@CHAR_HEIGHT, @CHAR_WIDTH, @CHAR_HEIGHT)
 
-    console?.log [cx, cy]
+  refresh: ->
+    @ctx.drawImage(@mapCanvas, 0, 0)
 
-    @ctx.drawImage(@fontImage, cx * @CHAR_WIDTH, cy * @CHAR_HEIGHT, @CHAR_WIDTH, @CHAR_HEIGHT, x*@CHAR_WIDTH, y*@CHAR_HEIGHT, @CHAR_WIDTH, @CHAR_HEIGHT)
-
-  clear: ->
-    @ctx.clearRect(0,0,@CANVAS_WIDTH,@CANVAS_HEIGHT)
+  clearMap: ->
+    @mapCtx.fillStyle = '#000'
+    @mapCtx.fillRect(0,0, @CANVAS_WIDTH, @CANVAS_HEIGHT)
   
 
