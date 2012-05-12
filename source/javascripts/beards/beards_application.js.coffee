@@ -19,12 +19,16 @@ window.Beards = Ember.Application.create
 
   loaded: false
   dirty: true
+  flags: Array()
+  paused: false
+
+  modalQueue: Array()
 
   # When the character moves
   moved: (->
 
-    egoX = @get('egoX')
-    egoY = @get('egoY')
+    egoX = @ego.get('x')
+    egoY = @ego.get('y')
 
     @set('standingOn', '')
     if egoX and egoY and @legend
@@ -33,29 +37,39 @@ window.Beards = Ember.Application.create
 
         # If we can pick it up
         if cell.pickup_as
-          @map[egoY][egoX] = @EMPTY_CELL
+          @replaceTile(@EMPTY_CELL, egoX, egoY)
           @get('inventory').addItem Beards.Item.create
             name: cell.name
             id: cell.pickup_as          
-          @mapChanged()
         else
           @set('standingOn', cell.name)
 
-  ).observes('egoX', 'egoY')
+  ).observes('ego.x', 'ego.y')
 
   # Loads a room via URL
   loadRoom: (url) ->
+    @roomUrl = url
     script = document.createElement("script")
     script.type = "text/javascript"
     script.src = url
     $('body').append(script)
 
   start: ->
+    @set 'ego', Beards.Actor.create
+      code: @PLAYER_CODE
+      x: 3
+      y: 3
+
     @nextTick = (new Date).getTime()
     @nextMove = @nextTick
     @renderer = new Beards.Renderer($('#terminal').get(0))
     @renderer.load =>
-      level = @loadRoom("http://beard2/levels/start.js")
+      if window.location.hash
+        hash = window.location.hash.replace("#", "")
+        level = @loadRoom("http://beard2/levels/#{hash}")
+      else
+        level = @loadRoom("http://beard2/levels/start.js")
+    @renderer.addActor(@ego)
 
     @sidebar = Beards.Sidebar.create()
     @sidebar.appendTo('#sidebar')
@@ -77,20 +91,13 @@ window.Beards = Ember.Application.create
     
   keyUp: (keyCode) ->
     switch keyCode
-      when 37 then @deltaX = 0
-      when 38 then @deltaY = 0
-      when 39 then @deltaX = 0
-      when 40 then @deltaY = 0
+      when 37, 39 then @deltaX = 0
+      when 38, 40 then @deltaY = 0
+      when 32, 13
+        @paused = false
+        @dirty = true
       else return true
     false
-
-  pickUp: (cell) ->
-    console?.log "pickup"
-    #inventory = @get('inventory')    
-    #item = Ember.Object.create
-    #  name: cell.name
-    #inventory.pushObject item
-    #console?.log inventory
 
   solid: (x, y) ->
     destCell = @map[y][x]
@@ -100,32 +107,43 @@ window.Beards = Ember.Application.create
 
   update: (now) ->
 
+    return if @paused
+
     if (@deltaX or @deltaY) and (now > @nextMove)
 
       @dirty = true
 
-      destX = @get('egoX') + @deltaX
-      destY = @get('egoY') + @deltaY
+      destX = @ego.get('x') + @deltaX
+      destY = @ego.get('y') + @deltaY
       destX = 0 if destX < 0
       destY = 0 if destY < 0
       destX = @COLS - 1 if destX >= @COLS
       destY = @ROWS - 1 if destY >= @ROWS      
 
       if @solid(destX, destY)
-        unless @solid(destX, @get('egoY'))
-          @set('egoX', destX)
-        else if not @solid(@get('egoX'), destY)
-          @set('egoY', destY)
+        unless @solid(destX, @ego.get('y'))
+          @ego.set('x', destX)
+        else if not @solid(@ego.get('x'), destY)
+          @ego.set('y', destY)
       else
-        @set('egoX', destX)
-        @set('egoY', destY)
+        @ego.set('x', destX)
+        @ego.set('y', destY)
 
-      #if @triggers and callback = @triggers["#{@egoX},#{@egoY}"]
-      #  callback()
+      triggerId = "#{destX},#{destY}"
+      if @triggers and callback = @triggers[triggerId]
+        callback(destX, destY)
 
       @nextMove = (new Date).getTime() + @MOVE_SPEED_MS
 
   tick: ->
+
+    return if @paused
+
+    if @modalQueue.length
+      @paused = true
+      @deltaX = @deltaY = 0
+      @renderer.modal(@modalQueue.shift())
+
 
     loops = 0   
     now = (new Date).getTime()
@@ -135,9 +153,9 @@ window.Beards = Ember.Application.create
       loops++
       now = (new Date).getTime()
 
-    if @loaded and @dirty
+    if @loaded and @dirty and (not @paused)
       @renderer.refresh()
-      @renderer.drawChar(@PLAYER_CODE, @get('egoX'), @get('egoY'))
+      #@renderer.drawCode(@PLAYER_CODE, @get('egoX'), @get('egoY'))
       @dirty = false
 
   mapChanged: () ->
@@ -146,16 +164,51 @@ window.Beards = Ember.Application.create
       row.each (col, i) =>
         @renderer.drawMap(col, i, j)
 
-  startRoom: (level) ->
+  # Returns true if an inventory item was used
+  useItem: (itemId) ->
+    @inventory.useItem(itemId)
 
+  # Set a flag by name
+  setRoomFlag: (flag, value) -> 
+    @flags[SHA1("#{@roomUrl}#{flag}")] = value
+
+  # Get a flag by name 
+  getRoomFlag: (flag) -> 
+    @flags[SHA1("#{@roomUrl}#{flag}")] 
+
+  # API for replacing a tile on the map with another
+  replaceTile: (c, x, y) ->
+    @map[y][x] = c
+    @mapChanged()
+
+  modal: (message) ->
+    @modalQueue.push(message)
+
+  modalOnce: (message) ->
+    unless @getRoomFlag(message)
+      @modal(message)
+      @setRoomFlag(message, true)
+
+  teleport: (x, y) ->
+    @ego.set('x', x)
+    @ego.set('y', y)
+
+  startRoom: (level) ->
     @triggers = null
     @map = []
+    @set('description', level.description)
     level.map.each (row) => @map.push(row.split(''))
     @renderer.importLegend(level.legend)
     @renderer.setTile(@PLAYER_CODE, 0x02, "bright_white", "black")
     @triggers = level.triggers
-    @set('egoX', level.start[0])
-    @set('egoY', level.start[1])
+
+    @triggers["55,18"] = => @teleport(76, 18)
+    @triggers["77,18"] = => @teleport(55, 18)
+
+    @ego.set('x', level.start[0])
+    @ego.set('y', level.start[1])
+    level.enterRoom() if level.enterRoom
+
     @solids = Array()
     @legend = level.legend
     @mapChanged()

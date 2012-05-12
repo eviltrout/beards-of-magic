@@ -12,11 +12,15 @@
 
 <script type="text/x-handlebars" id="beards_templates_sidebar">
   
-  <h3>(<span class='number'>{{Beards.egoX}}</span>, <span class='number'>{{Beards.egoY}}</span>)</h3>
+  {{#if Beards.description}}
+    <h4>{{Beards.description}}</h4>
+  {{/if}}
+
+  <h3>(<span class='number'>{{Beards.ego.x}}</span>, <span class='number'>{{Beards.ego.y}}</span>)</h3>
 
   <p>
     {{#if Beards.standingOn}}
-      Standing on {{Beards.standingOn}}
+      {{Beards.standingOn}}
     {{else}}
       &nbsp;
     {{/if}}
