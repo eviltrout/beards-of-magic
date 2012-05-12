@@ -8,7 +8,7 @@ var level = {
 		"o": {code: 0x02, colour: "bright_yellow", bg_colour: "black"},
 		"O": {code: 0x01, colour: "bright_white", bg_colour: "black"},
 		"=": {code: 0xDF, colour: "yellow", bg_colour: "black"}
-	},
+	},	
 	map: [
 "################################################################################",
 "################################################################################",

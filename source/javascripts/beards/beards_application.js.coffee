@@ -9,6 +9,8 @@ window.Beards =
 
   MOVE_SPEED_MS: 50
 
+  PLAYER_CODE: '0'
+
   egoX: 10
   egoY: 4 
 
@@ -30,7 +32,7 @@ window.Beards =
     @nextMove = @nextTick
     @renderer = new Beards.Renderer($('#terminal').get(0))
     @renderer.load =>
-      level = @loadRoom("http://beard1/javascripts/levels/start.js")
+      level = @loadRoom("http://beard2/levels/start.js")
 
     # Render loop
     setInterval @tick.bind(this), 1000/60
@@ -44,6 +46,10 @@ window.Beards =
       when 38 then @deltaY = -1
       when 39 then @deltaX = 1
       when 40 then @deltaY = 1
+      else
+        return true
+    false
+    
 
   keyUp: (keyCode) ->
     switch keyCode
@@ -51,30 +57,47 @@ window.Beards =
       when 38 then @deltaY = 0
       when 39 then @deltaX = 0
       when 40 then @deltaY = 0
+      else 
+        return true
+    false
+
+  solid: (x, y) ->
+    destCell = @map[y][x]
+    if cell = @legend[destCell]
+      return true if cell.solid
+    false
 
   update: (now) ->
 
     if (@deltaX or @deltaY) and (now > @nextMove)
 
       @dirty = true
-      @egoX += @deltaX
-      @egoY += @deltaY
 
-      @egoX = 0 if @egoX < 0
-      @egoY = 0 if @egoY < 0
-      @egoX = @COLS - 1 if @egoX >= @COLS
-      @egoY = @ROWS - 1 if @egoY >= @ROWS      
+      destX = @egoX + @deltaX
+      destY = @egoY + @deltaY
+      destX = 0 if destX < 0
+      destY = 0 if destY < 0
+      destX = @COLS - 1 if destX >= @COLS
+      destY = @ROWS - 1 if destY >= @ROWS      
+
+      if @solid(destX, destY)
+        unless @solid(destX, @egoY)
+          @egoX = destX
+        else if not @solid(@egoX, destY)
+          @egoY = destY
+      else
+        @egoX = destX
+        @egoY = destY
 
       $('#yPos').text(@egoY)
       $('#xPos').text(@egoX)
 
-      if @triggers and callback = @triggers["#{@egoX},#{@egoY}"]
-        callback()
+      #if @triggers and callback = @triggers["#{@egoX},#{@egoY}"]
+      #  callback()
 
       @nextMove = (new Date).getTime() + @MOVE_SPEED_MS
 
   tick: ->
-
 
     loops = 0   
     now = (new Date).getTime()
@@ -86,28 +109,29 @@ window.Beards =
 
     if @loaded and @dirty
       @renderer.refresh()
-      @renderer.drawChar(2, @egoX, @egoY)
+      @renderer.drawChar(@PLAYER_CODE, @egoX, @egoY)
       @dirty = false
 
   mapChanged: () ->
     @renderer.clearMap()
     @map.each (row, j) =>
       row.each (col, i) =>
-        symbol = @legend[col]
-        @renderer.drawMap(symbol.code, i, j) if symbol    
+        @renderer.drawMap(col, i, j)
 
   startRoom: (level) ->
 
     @triggers = null
     @map = []
-    level.map.each (row) => @map.push(row.split(''))            
-    @loaded = true
-    @legend = level.legend
+    level.map.each (row) => @map.push(row.split(''))
+    @renderer.importLegend(level.legend)
+    @renderer.setTile(@PLAYER_CODE, 0x02, "bright_white", "black")
     @triggers = level.triggers
     @egoX = level.start[0]
     @egoY = level.start[1]
-
+    @solids = Array()
+    @legend = level.legend
     @mapChanged()
+    @loaded = true
 
 $(document).ready (e) ->  
   Beards.start()
