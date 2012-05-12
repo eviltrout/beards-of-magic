@@ -2,9 +2,7 @@
 # Compass
 ###
 
-# Susy grids in Compass
-# First: gem install compass-susy-plugin
-# require 'susy'
+#require "emberjs-rails"
 
 # Change Compass configuration
 # compass_config do |config|

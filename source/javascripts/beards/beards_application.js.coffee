@@ -1,4 +1,6 @@
-window.Beards =
+window.Beards = Ember.Application.create
+
+  inventoryBinding: "Beards.Inventory"
 
   ROWS: 25
   COLS: 80
@@ -10,15 +12,36 @@ window.Beards =
   MOVE_SPEED_MS: 50
 
   PLAYER_CODE: '0'
-
-  egoX: 10
-  egoY: 4 
+  EMPTY_CELL: ' '
 
   deltaX: 0
   deltaY: 0
 
   loaded: false
   dirty: true
+
+  # When the character moves
+  moved: (->
+
+    egoX = @get('egoX')
+    egoY = @get('egoY')
+
+    @set('standingOn', '')
+    if egoX and egoY and @legend
+      code = @map[egoY][egoX]
+      if cell = @legend[code]
+
+        # If we can pick it up
+        if cell.pickup_as
+          @map[egoY][egoX] = @EMPTY_CELL
+          @get('inventory').addItem Beards.Item.create
+            name: cell.name
+            id: cell.pickup_as          
+          @mapChanged()
+        else
+          @set('standingOn', cell.name)
+
+  ).observes('egoX', 'egoY')
 
   # Loads a room via URL
   loadRoom: (url) ->
@@ -34,6 +57,9 @@ window.Beards =
     @renderer.load =>
       level = @loadRoom("http://beard2/levels/start.js")
 
+    @sidebar = Beards.Sidebar.create()
+    @sidebar.appendTo('#sidebar')
+
     # Render loop
     setInterval @tick.bind(this), 1000/60
 
@@ -46,20 +72,25 @@ window.Beards =
       when 38 then @deltaY = -1
       when 39 then @deltaX = 1
       when 40 then @deltaY = 1
-      else
-        return true
+      else return true
     false
     
-
   keyUp: (keyCode) ->
     switch keyCode
       when 37 then @deltaX = 0
       when 38 then @deltaY = 0
       when 39 then @deltaX = 0
       when 40 then @deltaY = 0
-      else 
-        return true
+      else return true
     false
+
+  pickUp: (cell) ->
+    console?.log "pickup"
+    #inventory = @get('inventory')    
+    #item = Ember.Object.create
+    #  name: cell.name
+    #inventory.pushObject item
+    #console?.log inventory
 
   solid: (x, y) ->
     destCell = @map[y][x]
@@ -73,24 +104,21 @@ window.Beards =
 
       @dirty = true
 
-      destX = @egoX + @deltaX
-      destY = @egoY + @deltaY
+      destX = @get('egoX') + @deltaX
+      destY = @get('egoY') + @deltaY
       destX = 0 if destX < 0
       destY = 0 if destY < 0
       destX = @COLS - 1 if destX >= @COLS
       destY = @ROWS - 1 if destY >= @ROWS      
 
       if @solid(destX, destY)
-        unless @solid(destX, @egoY)
-          @egoX = destX
-        else if not @solid(@egoX, destY)
-          @egoY = destY
+        unless @solid(destX, @get('egoY'))
+          @set('egoX', destX)
+        else if not @solid(@get('egoX'), destY)
+          @set('egoY', destY)
       else
-        @egoX = destX
-        @egoY = destY
-
-      $('#yPos').text(@egoY)
-      $('#xPos').text(@egoX)
+        @set('egoX', destX)
+        @set('egoY', destY)
 
       #if @triggers and callback = @triggers["#{@egoX},#{@egoY}"]
       #  callback()
@@ -109,7 +137,7 @@ window.Beards =
 
     if @loaded and @dirty
       @renderer.refresh()
-      @renderer.drawChar(@PLAYER_CODE, @egoX, @egoY)
+      @renderer.drawChar(@PLAYER_CODE, @get('egoX'), @get('egoY'))
       @dirty = false
 
   mapChanged: () ->
@@ -126,8 +154,8 @@ window.Beards =
     @renderer.importLegend(level.legend)
     @renderer.setTile(@PLAYER_CODE, 0x02, "bright_white", "black")
     @triggers = level.triggers
-    @egoX = level.start[0]
-    @egoY = level.start[1]
+    @set('egoX', level.start[0])
+    @set('egoY', level.start[1])
     @solids = Array()
     @legend = level.legend
     @mapChanged()

@@ -1,0 +1,34 @@
+<div class='row'>
+  <section id='play' class='span9'>
+    <canvas id='terminal' width='640' height='375'>
+      You need to use a browser that supports HTML5.
+    </canvas>
+  </section>
+
+  <section id='sidebar' class='span3'>
+  </section>
+
+</div>
+
+<script type="text/x-handlebars" id="beards_templates_sidebar">
+  
+  <h3>(<span class='number'>{{Beards.egoX}}</span>, <span class='number'>{{Beards.egoY}}</span>)</h3>
+
+  <p>
+    {{#if Beards.standingOn}}
+      Standing on {{Beards.standingOn}}
+    {{else}}
+      &nbsp;
+    {{/if}}
+  </p>
+
+  {{#if inventory.itemCount}}
+    <h4>Inventory</h4>
+    <ul>
+      {{#each inventory.itemsGrouped}}
+        <li>{{this}}</li>
+      {{/each}}
+    </ul>
+  {{/if}}
+
+</script>
