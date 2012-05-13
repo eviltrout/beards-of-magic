@@ -1,5 +1,5 @@
-require(["http://beard2/levels/level_helper.js"], function () {
-	Beards.startRoom({
+require(["http://lost-arts.ca/javascripts/levels/level_helper.js"], function () {
+	var farmFieldLevel = {
 		name: "farmField",
 		description: "Abandoned Farm (Field)",
 		start: [54,0],
@@ -50,15 +50,11 @@ require(["http://beard2/levels/level_helper.js"], function () {
 "`````````>`#^^^#````%;;;;`;};;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;%````>",
 "```r`````>`##+##````%;;;;;;;;;;;;;;;;;;;;;;;;};;;;;;;;;`;};;;;;;;;;;;;;;;;%````>",
 "`````````>```%``````%;;;;;;;;;;;;;;;;};;;;;;;;;;;;;;;;`;;;;;;;;;;;;;;;`;;;%````>",
-"`r````r``>```%```k``%;;;;;;;;;;;;;;;;;;;;;;;;;;;};;;;;;;;;;;;;;;};;;;;;`;;%````>",
+"`r`k``r``>```%``````%;;;;;;;;;;;;;;;;;;;;;;;;;;;};;;;;;;;;;;;;;;};;;;;;`;;%````>",
 "`````````>```%``````%;;;;};;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;%````>",
 "```r`````>```%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%````>",
 "`````````(<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<)",
 		],
-
-		enterRoom: function() {
-			Beards.modal("hello")
-		},
 
 		triggers: {
 			///////////
@@ -79,23 +75,26 @@ require(["http://beard2/levels/level_helper.js"], function () {
 			// Exits //
 			///////////
 			"54,-1":  function(x, y) {
-				Beards.loadRoom("http://beard2/levels/farm.js", 54, 24);
+				Beards.loadRoom("http://lost-arts.ca/javascripts/levels/farm.js", 54, 24);
 			},
 			"2,-1":  function(x, y) {
-				Beards.loadRoom("http://beard2/levels/farm.js", 2, 24);
+				Beards.loadRoom("http://lost-arts.ca/javascripts/levels/farm.js", 2, 24);
 			},
 			"3,-1":  function(x, y) {
-				Beards.loadRoom("http://beard2/levels/farm.js", 3, 24);
+				Beards.loadRoom("http://lost-arts.ca/javascripts/levels/farm.js", 3, 24);
 			},
 			"4,-1":  function(x, y) {
-				Beards.loadRoom("http://beard2/levels/farm.js", 4, 24);
+				Beards.loadRoom("http://lost-arts.ca/javascripts/levels/farm.js", 4, 24);
 			},
 			"13,18":  function(x, y) {
-				Beards.loadRoom("http://beard2/levels/farm_field_shed.js", 14, 15);
+				Beards.loadRoom("http://lost-arts.ca/javascripts/levels/farm_field_shed.js", 14, 15);
 			},
 		}
-	});
+	}
 
+	LevelHelper.removeDoors('+', farmFieldLevel)
+
+	Beards.startRoom(farmFieldLevel);
 });
 
 

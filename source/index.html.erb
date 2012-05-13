@@ -16,7 +16,15 @@
     <h4>{{Beards.description}}</h4>
   {{/if}}
 
-  <h3>(<span class='number'>{{Beards.ego.x}}</span>, <span class='number'>{{Beards.ego.y}}</span>)</h3>
+  {{#if Beards.debug}}
+    <h3>(<span class='number'>{{Beards.ego.x}}</span>, <span class='number'>{{Beards.ego.y}}</span>)</h3>
+  {{/if}}
+
+  {{#if Beards.mute}}
+    <p><a href='#' {{action unmute}}>Play Music</a><p>
+  {{else}}
+    <p><a href='#' {{action mute}}>Stop Music</a><p>
+  {{/if}}
 
   <p>
     {{#if Beards.standingOn}}

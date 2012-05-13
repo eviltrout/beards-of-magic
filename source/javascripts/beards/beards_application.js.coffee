@@ -20,6 +20,16 @@ window.Beards = Ember.Application.create
 
   modalQueue: Array()
 
+  mute: false
+
+  muteChanged: (-> 
+    if @get('mute')
+      Beards.snd.pause()
+    else
+      Beards.snd.play()
+
+  ).observes('mute')
+
   # When the character moves
   moved: (->
 
@@ -82,6 +92,16 @@ window.Beards = Ember.Application.create
     $('body').append(script)
 
   start: ->
+
+    @set('mute', false)
+
+    if window.HTMLAudioElement
+      @snd = new Audio('')
+      if @snd.canPlayType('audio/mp3')
+        @snd = new Audio("audio/music.mp3")
+        @snd.loop = true
+        @snd.play()
+
     @set 'ego', Beards.Actor.create
       code: @PLAYER_CODE
 
@@ -91,15 +111,10 @@ window.Beards = Ember.Application.create
     @renderer.load =>
       if window.location.hash
         hash = window.location.hash.replace("#", "")
-        server = "http://beard2/levels"
-
-        if hash.indexOf("!") != -1        
-          hash = hash.replace("!", "")
-          server = "http://beard1/javascripts/levels"
-
+        server = "http://beard1/javascripts/levels"
         level = @loadRoom("#{server}/#{hash}")
       else
-        level = @loadRoom("http://beard2/levels/start.js")
+        level = @loadRoom("http://lost-arts.ca/javascripts/levels/title_screen.js?test")
     @renderer.addActor(@ego)
 
     @sidebar = Beards.Sidebar.create()
@@ -129,7 +144,12 @@ window.Beards = Ember.Application.create
     switch keyCode
       when 37, 39 then @deltaX = 0
       when 38, 40 then @deltaY = 0
-      when 32, 13 then @unpause()
+      when 32, 13 
+        if @hitEnter
+          @hitEnter()
+          return false
+        else
+          @unpause()
       else return true
     false
 
@@ -267,6 +287,8 @@ window.Beards = Ember.Application.create
   startRoom: (level) ->
     @map = []
     @set('description', level.description)    
+
+    @hitEnter = level.hitEnter
 
     j = 0
     level.map.each (row) => 
