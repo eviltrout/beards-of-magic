@@ -10,6 +10,7 @@ window.Beards = Ember.Application.create
   SKIP_TICKS: 1000 / 30
 
   MOVE_SPEED_MS: 50
+  MOVE_FIRST_STEP_MS: 125
 
   PLAYER_CODE: '0'
   EMPTY_CELL: ' '
@@ -106,12 +107,17 @@ window.Beards = Ember.Application.create
     $(document).keyup (event) => @keyUp(event.keyCode)
 
   keyDown: (keyCode) ->
+
+    # We set nextMove to be 0 so our first step takes longer
+    @nextMove = 0 if (@deltaX == 0) and (@deltaY == 0) 
+
     switch keyCode
       when 37 then @deltaX = -1
       when 38 then @deltaY = -1
       when 39 then @deltaX = 1
       when 40 then @deltaY = 1
       else return true
+
     false
     
   keyUp: (keyCode) ->
@@ -160,7 +166,10 @@ window.Beards = Ember.Application.create
         callback = callback.bind(@level)
         callback(destX, destY)
 
-      @nextMove = (new Date).getTime() + @MOVE_SPEED_MS      
+      if @nextMove == 0
+        @nextMove = (new Date).getTime() + @MOVE_FIRST_STEP_MS
+      else
+        @nextMove = (new Date).getTime() + @MOVE_SPEED_MS      
 
   tick: ->
 
@@ -182,7 +191,6 @@ window.Beards = Ember.Application.create
 
     if @loaded and @dirty and (not @paused)
       @renderer.refresh()
-      #@renderer.drawCode(@PLAYER_CODE, @get('egoX'), @get('egoY'))
       @dirty = false
 
   mapChanged: () ->
