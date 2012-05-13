@@ -134,7 +134,8 @@ class window.Beards.Renderer
   refresh: ->
     @ctx.drawImage(@mapCanvas, 0, 0)
 
-    @drawCode(a.get('code'), a.get('x'), a.get('y')) for a in @actors
+    for a in @actors
+      @drawCode(a.get('code'), a.get('x'), a.get('y')) unless a.get('hidden')
       
 
   clearMap: ->

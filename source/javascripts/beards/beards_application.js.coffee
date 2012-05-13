@@ -34,13 +34,18 @@ window.Beards = Ember.Application.create
         # If we can pick it up
         if cell.pickup_as
           @replaceTile(@EMPTY_CELL, egoX, egoY, false)
-          @get('inventory').addItem Beards.Item.create
-            name: cell.name
-            id: cell.pickup_as          
+          @setGlobalFlag(SHA1("picked_up_#{@roomUrl},#{egoX},#{egoY}"), true)
+          @addItem(cell.name, cell.pickup_as)
         else
           @set('standingOn', cell.name)
 
   ).observes('ego.x', 'ego.y')
+
+  hidePlayer: ->
+    @ego.set('hidden', true)
+
+  showPlayer: ->
+    @ego.set('hidden', false)
 
   # Pause the game
   pause: (finished=null) ->
@@ -141,9 +146,11 @@ window.Beards = Ember.Application.create
   update: (now) ->
 
     return if @paused
-    return unless @loaded
+    return unless @loaded    
 
     @levelUpdate((new Date).getTime() - @lastTime) if @levelUpdate
+
+    return if @ego.get('hidden')
 
     if (@deltaX or @deltaY) and (now > @nextMove)
 
@@ -201,15 +208,31 @@ window.Beards = Ember.Application.create
 
   # Returns true if an inventory item was used
   useItem: (itemId) ->
-    @inventory.useItem(itemId)
+    @get('inventory').useItem(itemId)
+
+  hasItem: (id) ->
+    @get('inventory').hasItem(id)
+    
+  addItem: (name, id) ->
+    @get('inventory').addItem Beards.Item.create
+      name: name
+      id: id
+
+  # Set a global flag
+  setGlobalFlag: (flag, value) ->
+    @flags[flag] = value
+
+  # Get a global flag
+  getGlobalFlag: (flag) ->
+    @flags[flag]
 
   # Set a flag by name
   setRoomFlag: (flag, value) -> 
-    @flags[SHA1("#{@roomUrl}#{flag}")] = value
+    @setGlobalFlag(SHA1("#{@roomUrl}#{flag}"), value)
 
   # Get a flag by name 
   getRoomFlag: (flag) -> 
-    @flags[SHA1("#{@roomUrl}#{flag}")] 
+    @getGlobalFlag(SHA1("#{@roomUrl}#{flag}"))
 
   removeTrigger: (x, y) ->
     return unless @triggers
@@ -244,7 +267,21 @@ window.Beards = Ember.Application.create
   startRoom: (level) ->
     @map = []
     @set('description', level.description)    
-    level.map.each (row) => @map.push(row.split(''))
+
+    j = 0
+    level.map.each (row) => 
+      cells = row.split('')
+
+      # Remove any objects we've already picked up
+      i = 0
+      for cell in cells
+        cell = level.legend[cell]
+        if cell and cell.pickup_as
+          if @getGlobalFlag(SHA1("picked_up_#{@roomUrl},#{i},#{j}"))
+            cells[i] = ' '
+        i++
+      @map.push(cells)
+      j++
     
     @renderer.importLegend(level.legend)    
     @renderer.setTile(@PLAYER_CODE, 0x02, "bright_white", "black")
@@ -271,8 +308,9 @@ window.Beards = Ember.Application.create
     @ego.set('x', level.start[0])
     @ego.set('y', level.start[1])
 
-    level.enterRoom() if level.enterRoom
+    level.enterRoom(level.start[0], level.start[1]) if level.enterRoom
 
+    @showPlayer()
     @solids = Array()
     @legend = level.legend
     @loaded = true

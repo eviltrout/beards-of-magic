@@ -20,6 +20,11 @@ window.Beards.Inventory = Ember.Object.create
     
   ).property('items.@each')
 
+  hasItem: (itemId) ->
+    for item in @get('items')
+      return true if item.id == itemId
+    false
+
   # If we have an item, destroy it and return true.
   useItem: (itemId) ->
     items = @get('items')
