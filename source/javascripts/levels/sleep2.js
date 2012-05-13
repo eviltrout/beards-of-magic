@@ -44,7 +44,7 @@ Beards.startRoom({
 
     "16,9": function() {
       if (!Beards.getRoomFlag('seen_door')) {
-        Beards.modalOnce("A small door blocks your path.");
+        Beards.modalOnce("A locked door blocks your path.");
         Beards.setRoomFlag('seen_door', true);        
 
         setTimeout(function () {
@@ -67,7 +67,7 @@ Beards.startRoom({
   },
 
   enterRoom: function() {
-    Beards.modalOnce("Where are you?");
+    Beards.modalOnce("What is this place?");
   },
 
   update: function(elapsed) {    

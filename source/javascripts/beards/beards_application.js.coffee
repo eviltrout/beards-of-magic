@@ -42,17 +42,20 @@ window.Beards = Ember.Application.create
   ).observes('ego.x', 'ego.y')
 
   # Pause the game
-  pause: ->
+  pause: (finished=null) ->
+    @pauseFinished = finished
     @paused = true
     @deltaX = @deltaY = 0
     @elapsed = (new Date).getTime() - @lastTime
 
   # Unpause the game
-  unpause: ->
+  unpause: ->  
     @paused = false
     @dirty = true
     @lastTime = (new Date).getTime() - @elapsed
     @elapsed = null
+    @pauseFinished() if @pauseFinished
+    @pauseFinished = null
 
   # Loads a room via URL
   loadRoom: (url, x=null, y=null) ->
@@ -165,8 +168,9 @@ window.Beards = Ember.Application.create
     return unless @loaded
 
     if @modalQueue.length
-      @pause()
-      @renderer.modal(@modalQueue.shift())
+      modal = @modalQueue.shift()
+      @pause(modal.finished)      
+      @renderer.modal(modal.message)
 
     loops = 0   
     now = (new Date).getTime()
@@ -211,12 +215,14 @@ window.Beards = Ember.Application.create
       @dirty = true
       @mapChanged()
 
-  modal: (message) ->
-    @modalQueue.push(message)
+  modal: (message, finished) ->
+    @modalQueue.push
+      message: message
+      finished: if finished then finished.bind(@level) else null
 
-  modalOnce: (message) ->
+  modalOnce: (message, finished) ->
     unless @getRoomFlag(message)
-      @modal(message)
+      @modal(message, finished)
       @setRoomFlag(message, true)
 
   teleport: (x, y) ->
