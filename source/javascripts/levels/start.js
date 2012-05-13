@@ -3,11 +3,11 @@ var level = {
     start: [60,18],
 	description: "Flarn Council Headquarters",
     legend: {
-		"*": {code: 0x2A, colour: "bright_red", bg_colour: "black"},
-		"#": {code: 0xB1, colour: "bright_black", bg_colour: "black"},
-		"o": {code: 0x02, colour: "bright_yellow", bg_colour: "black"},
-		"O": {code: 0x01, colour: "bright_white", bg_colour: "black"},
-		"=": {code: 0xDF, colour: "yellow", bg_colour: "black"}
+		"*": {code: 0x2A, fg: "bright_red", bg: "black"},
+		"#": {code: 0xB1, fg: "bright_black", solid: true, bg: "black"},
+		"o": {code: 0x02, fg: "bright_yellow", bg: "black"},
+		"O": {code: 0x01, fg: "bright_white", bg: "black"},
+		"=": {code: 0xDF, fg: "yellow", bg: "black"}
 	},	
 	map: [
 "################################################################################",

@@ -41,6 +41,19 @@ window.Beards = Ember.Application.create
 
   ).observes('ego.x', 'ego.y')
 
+  # Pause the game
+  pause: ->
+    @paused = true
+    @deltaX = @deltaY = 0
+    @elapsed = (new Date).getTime() - @lastTime
+
+  # Unpause the game
+  unpause: ->
+    @paused = false
+    @dirty = true
+    @lastTime = (new Date).getTime() - @elapsed
+    @elapsed = null
+
   # Loads a room via URL
   loadRoom: (url, x=null, y=null) ->
     @loaded = false
@@ -69,7 +82,13 @@ window.Beards = Ember.Application.create
     @renderer.load =>
       if window.location.hash
         hash = window.location.hash.replace("#", "")
-        level = @loadRoom("http://beard2/levels/#{hash}")
+        server = "http://beard2/levels"
+
+        if hash.indexOf("!") != -1        
+          hash = hash.replace("!", "")
+          server = "http://beard1/javascripts/levels"
+
+        level = @loadRoom("#{server}/#{hash}")
       else
         level = @loadRoom("http://beard2/levels/start.js")
     @renderer.addActor(@ego)
@@ -96,9 +115,7 @@ window.Beards = Ember.Application.create
     switch keyCode
       when 37, 39 then @deltaX = 0
       when 38, 40 then @deltaY = 0
-      when 32, 13
-        @paused = false
-        @dirty = true
+      when 32, 13 then @unpause()
       else return true
     false
 
@@ -115,6 +132,9 @@ window.Beards = Ember.Application.create
   update: (now) ->
 
     return if @paused
+    return unless @loaded
+
+    @levelUpdate((new Date).getTime() - @lastTime) if @levelUpdate
 
     if (@deltaX or @deltaY) and (now > @nextMove)
 
@@ -136,17 +156,16 @@ window.Beards = Ember.Application.create
       if @triggers and callback = @triggers[triggerId]
         callback(destX, destY)
 
-      @nextMove = (new Date).getTime() + @MOVE_SPEED_MS
+      @nextMove = (new Date).getTime() + @MOVE_SPEED_MS      
 
   tick: ->
 
     return if @paused
+    return unless @loaded
 
     if @modalQueue.length
-      @paused = true
-      @deltaX = @deltaY = 0
+      @pause()
       @renderer.modal(@modalQueue.shift())
-
 
     loops = 0   
     now = (new Date).getTime()
@@ -182,6 +201,7 @@ window.Beards = Ember.Application.create
   # API for replacing a tile on the map with another
   replaceTile: (c, x, y) ->
     @map[y][x] = c
+    @dirty = true
     @mapChanged()
 
   modal: (message) ->
@@ -196,16 +216,23 @@ window.Beards = Ember.Application.create
     @ego.set('x', x)
     @ego.set('y', y)
 
-  startRoom: (level) ->
-    @triggers = null
-    @map = []
-    @set('description', level.description)
-    level.map.each (row) => @map.push(row.split(''))
-    @renderer.importLegend(level.legend)
-    @renderer.setTile(@PLAYER_CODE, 0x02, "bright_white", "black")
-    @triggers = level.triggers
+  error: (msg) ->
+    alert(msg)
+    false
 
-    @triggers["55,18"] = => @loadRoom("http://beard2/levels/minefield.js")
+  startRoom: (level) ->
+    @map = []
+    @set('description', level.description)    
+    level.map.each (row) => @map.push(row.split(''))
+    
+    @renderer.importLegend(level.legend)    
+    @renderer.setTile(@PLAYER_CODE, 0x02, "bright_white", "black")
+
+    @elapsed = 0
+    @lastTime = (new Date).getTime()
+    @levelUpdate = level.update
+
+    @triggers = level.triggers || {}
 
     if @postLoadX isnt null
       level.start[0] = @postLoadX
@@ -217,12 +244,15 @@ window.Beards = Ember.Application.create
 
     @ego.set('x', level.start[0])
     @ego.set('y', level.start[1])
+
     level.enterRoom() if level.enterRoom
 
     @solids = Array()
     @legend = level.legend
-    @mapChanged()
     @loaded = true
+    @mapChanged()
+
+    
 
 $(document).ready (e) ->  
   Beards.start()

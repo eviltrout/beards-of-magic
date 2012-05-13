@@ -58,7 +58,7 @@ class window.Beards.Renderer
 
   importLegend: (legend) ->
     @legend = Array()
-    Object.each legend, (key) => 
+    Object.each legend, (key) =>       
       entry = legend[key]
       @setTile(key, entry.code, entry.fg, entry.bg)
   
