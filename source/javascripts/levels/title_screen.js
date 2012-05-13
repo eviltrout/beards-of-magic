@@ -73,7 +73,7 @@ require(["http://beard2/levels/level_helper.js"], function () {
 				"                         ABCCCCCCBA          ABCCCCCCCBA                        ",
 				"                                                                   press enter  ",
 				"                                                                      to start  ",
-				"     made for to jam 7 by: robin ward / forumwarz.com                           ",
+				"     made for to jam 7 by: robin ward / eviltrout.com                           ",
 				"                           derek quenneville / techknight.com                   ",
 				"           [sound floater] stephen columbus / soundcloud.com/stephen-columbus   ",
 				"                                                                                ",
