@@ -80,6 +80,10 @@ require(["http://lost-arts.ca/javascripts/levels/level_helper.js"], function () 
 			///////////////////
 			// Conversations //
 			///////////////////
+			"8,6": function(x,y) {
+				Beards.modalOnce("You found a bottle of Moonshine!");
+			},
+
 			"34,2": function() {
 				Beards.modal('"Smith Family Farm"');
 				Beards.modal('"- Home of the world-famous King-Size Carrots -"');

@@ -1,4 +1,4 @@
-require(["http://lost-arts.ca/javascripts/levels/level_helper.js"], function () {
+require(["http://beard2/levels/level_helper.js"], function () {
 	var titleLevel = {
 		  name: "title",
 		  description: "Title Screen",
@@ -36,6 +36,7 @@ require(["http://lost-arts.ca/javascripts/levels/level_helper.js"], function () 
 			"7": {code: 0x37, fg: "bright_white",   bg: "black",    solid: true,  name: "Letter"},
 			"/": {code: 0x2F, fg: "bright_white",   bg: "black",    solid: true,  name: "Letter"},
 			"-": {code: 0x2D, fg: "bright_white",   bg: "black",    solid: true,  name: "Letter"},
+			".": {code: 0x2E, fg: "bright_white",   bg: "black",    solid: true,  name: "Letter"},
 			
 
 			"A": {code: 0xB2, fg: "red",   bg: "black",    solid: true,  name: "Fog"},    
@@ -79,7 +80,7 @@ require(["http://lost-arts.ca/javascripts/levels/level_helper.js"], function () 
 			   ],
 
 			hitEnter: function() {
-				Beards.loadRoom("http://lost-arts.ca/javascripts/levels/sleep.js");
+				Beards.loadRoom("http://beard2/levels/sleep.js");
 			},
 
 		  triggers: {},
