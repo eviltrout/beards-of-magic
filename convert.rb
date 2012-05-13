@@ -10,9 +10,7 @@ end
 
 rows.each_with_index do |row, i|
 
-  row.strip!
   while row.size < 80 do
-    row = " " + row
     row = row + " " if row.size < 80
   end
 

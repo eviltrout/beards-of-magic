@@ -52,13 +52,13 @@ Beards.startRoom({
     if (elapsed > 6000) {
 
       this.triggers["57,9"] = function() {
-        return Beards.loadRoom("http://beard1/javascripts/levels/start.js")
+        return Beards.loadRoom("http://beard1/javascripts/levels/sleep2.js")
       }
 
       if ((elapsed % 400) < 200) {
-        Beards.replaceTile('P', 57, 9)
+        Beards.replaceTile('P', 57, 9, false)
       } else {
-        Beards.replaceTile('p', 57, 9)
+        Beards.replaceTile('p', 57, 9, false)
       }
     }
   },

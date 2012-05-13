@@ -32,7 +32,7 @@ window.Beards = Ember.Application.create
 
         # If we can pick it up
         if cell.pickup_as
-          @replaceTile(@EMPTY_CELL, egoX, egoY)
+          @replaceTile(@EMPTY_CELL, egoX, egoY, false)
           @get('inventory').addItem Beards.Item.create
             name: cell.name
             id: cell.pickup_as          
@@ -154,6 +154,7 @@ window.Beards = Ember.Application.create
 
       triggerId = "#{destX},#{destY}"
       if @triggers and callback = @triggers[triggerId]
+        callback = callback.bind(@level)
         callback(destX, destY)
 
       @nextMove = (new Date).getTime() + @MOVE_SPEED_MS      
@@ -198,11 +199,17 @@ window.Beards = Ember.Application.create
   getRoomFlag: (flag) -> 
     @flags[SHA1("#{@roomUrl}#{flag}")] 
 
+  removeTrigger: (x, y) ->
+    return unless @triggers
+    @triggers["#{x},#{y}"] = null
+
   # API for replacing a tile on the map with another
-  replaceTile: (c, x, y) ->
-    @map[y][x] = c
-    @dirty = true
-    @mapChanged()
+  replaceTile: (c, x, y, removeTrigger=true) ->
+    unless @map[y][x] == c
+      @map[y][x] = c
+      @removeTrigger(x,y) if removeTrigger
+      @dirty = true
+      @mapChanged()
 
   modal: (message) ->
     @modalQueue.push(message)
@@ -213,8 +220,8 @@ window.Beards = Ember.Application.create
       @setRoomFlag(message, true)
 
   teleport: (x, y) ->
-    @ego.set('x', x)
-    @ego.set('y', y)
+    @ego.set('x', parseInt(x))
+    @ego.set('y', parseInt(y))
 
   error: (msg) ->
     alert(msg)
@@ -230,7 +237,12 @@ window.Beards = Ember.Application.create
 
     @elapsed = 0
     @lastTime = (new Date).getTime()
-    @levelUpdate = level.update
+    if level.update
+      @levelUpdate = level.update.bind(level)
+    else
+      @levelUpdate = null
+
+    @level = level
 
     @triggers = level.triggers || {}
 
