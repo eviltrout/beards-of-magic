@@ -1,4 +1,4 @@
-require(["http://beard2/levels/level_helper.js"], function () {
+require(["http://lost-arts.ca/javascripts/levels/level_helper.js"], function () {
 	var titleLevel = {
 		  name: "title",
 		  description: "Title Screen",
@@ -80,7 +80,7 @@ require(["http://beard2/levels/level_helper.js"], function () {
 			   ],
 
 			hitEnter: function() {
-				Beards.loadRoom("http://beard2/levels/sleep.js");
+				Beards.loadRoom("http://lost-arts.ca/javascripts/levels/sleep.js");
 			},
 
 		  triggers: {},

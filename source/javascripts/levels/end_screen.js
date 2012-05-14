@@ -1,4 +1,4 @@
-require(["http://beard2/levels/level_helper.js"], function () {
+require(["http://lost-arts.ca/javascripts/levels/level_helper.js"], function () {
 	var endLevel = {
 		  name: "end",
 		  description: "End Screen",
